@@ -7,13 +7,22 @@ gridsquare=8
 
 --player
 player={}
-player["x"]=0
-player["y"]=0
+player.x=0
+player.y=0
 
---test rock
-testrock={}
-testrock["x"]=16
-testrock["y"]=16
+--blocks
+blockcount=2
+blocks={}
+
+function _init()
+
+	startpos=16
+	
+	for i=1,blockcount,1 do
+		blocks[i]={ x=startpos*i,y=startpos*i }
+	end
+
+end
 
 function moveplayer()
  
@@ -30,42 +39,46 @@ function moveplayer()
   mvmty+=gridsquare
  end
  
- player["x"]+=mvmtx
- player["y"]+=mvmty
+ player.x+=mvmtx
+ player.y+=mvmty
  
- if player["x"] < testrock["x"]+gridsquare and
- 	player["x"]+gridsquare > testrock["x"] and
- 	player["y"] < testrock["y"]+gridsquare and
- 	player["y"]+gridsquare > testrock["y"] then
-			testrock["x"]+=mvmtx
-			testrock["y"]+=mvmty
+ for i=1,blockcount,1 do
+ 
+
+		if player.x < blocks[i].x+gridsquare and
+ 		player.x+gridsquare > blocks[i].x and
+ 		player.y < blocks[i].y+gridsquare and
+ 		player.y+gridsquare > blocks[i].y then
+				blocks[i].x+=mvmtx
+				blocks[i].y+=mvmty
 			
-			if checkedgecollision(testrock)==true then
-				player["x"]-=mvmtx
-				player["y"]-=mvmty
-			end
+				if checkedgecollision(blocks[i])==true then
+					player.x-=mvmtx
+					player.y-=mvmty
+				end
 			
-			return
-	end 	
+				return
+		end
+ end	
 
  checkedgecollision(player)
 end
 
 function checkedgecollision(actor)
-	if actor["x"] < 0 then
- 	actor["x"]=0
+	if actor.x < 0 then
+ 	actor.x=0
  	sfx(0)
  	return true
- elseif actor["x"] > 127 then
- 	actor["x"]=120
+ elseif actor.x > 127 then
+ 	actor.x=120
  	sfx(0)
  	return true
- elseif actor["y"] < 0 then
- 	actor["y"]=0
+ elseif actor.y < 0 then
+ 	actor.y=0
  	sfx(0)
  	return true
- elseif actor["y"] > 119 then
- 	actor["y"]=112
+ elseif actor.y > 119 then
+ 	actor.y=112
  	sfx(0)
  	return true
  end
@@ -85,10 +98,13 @@ end
 
 function drawactors()
 	--player
-	spr(001,player["x"],player["y"])
+	spr(001,player.x,player.y)
 	
+	for i=1,blockcount,1 do
+		spr(005,blocks[i].x,blocks[i].y)
+	end
 	--test rock
-	spr(005,testrock["x"],testrock["y"])
+	
 end
 
 function _draw()
