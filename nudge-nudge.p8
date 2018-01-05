@@ -44,13 +44,26 @@ function moveplayer()
  
  for i=1,blockcount,1 do
  
-
-		if player.x < blocks[i].x+gridsquare and
- 		player.x+gridsquare > blocks[i].x and
- 		player.y < blocks[i].y+gridsquare and
- 		player.y+gridsquare > blocks[i].y then
+		if checkboundingcollision(player,blocks[i])==true then
+		
+				
 				blocks[i].x+=mvmtx
 				blocks[i].y+=mvmty
+				
+				for j=1,blockcount,1 do
+					if j~=i and
+					 checkboundingcollision(blocks[i],blocks[j])==true then
+						
+							blocks[i].x-=mvmtx
+							blocks[i].y-=mvmty
+							player.x-=mvmtx
+							player.y-=mvmty
+							
+							return				
+						
+					end
+				end
+				
 			
 				if checkedgecollision(blocks[i])==true then
 					player.x-=mvmtx
@@ -62,6 +75,19 @@ function moveplayer()
  end	
 
  checkedgecollision(player)
+end
+
+function checkboundingcollision(left,right)
+
+	if left.x < right.x+gridsquare and
+ 	left.x+gridsquare > right.x and
+ 	left.y < right.y+gridsquare and
+ 	left.y+gridsquare > right.y then
+ 
+ 		return true
+ end
+ 
+ return false
 end
 
 function checkedgecollision(actor)
