@@ -6,37 +6,71 @@ level=1
 gridsquare=8
 
 --player
-playerx=0
-playery=0
+player={}
+player["x"]=0
+player["y"]=0
 
 --test rock
-testrockx=16
-testrocky=16
+testrock={}
+testrock["x"]=16
+testrock["y"]=16
 
 function moveplayer()
+ 
+ mvmtx=0
+ mvmty=0
+ 
  if btnp(0) then
- 	playerx-=gridsquare
+ 	mvmtx-=gridsquare
  elseif btnp(1) then
- 	playerx+=gridsquare
+ 	mvmtx+=gridsquare
  elseif btnp(2) then
-  playery-=gridsquare
+  mvmty-=gridsquare
  elseif btnp(3) then
-  playery+=gridsquare
+  mvmty+=gridsquare
  end
  
- if playerx < 0 then
- 	playerx=0
+ player["x"]+=mvmtx
+ player["y"]+=mvmty
+ 
+ if player["x"] < testrock["x"]+gridsquare and
+ 	player["x"]+gridsquare > testrock["x"] and
+ 	player["y"] < testrock["y"]+gridsquare and
+ 	player["y"]+gridsquare > testrock["y"] then
+			testrock["x"]+=mvmtx
+			testrock["y"]+=mvmty
+			
+			if checkedgecollision(testrock)==true then
+				player["x"]-=mvmtx
+				player["y"]-=mvmty
+			end
+			
+			return
+	end 	
+
+ checkedgecollision(player)
+end
+
+function checkedgecollision(actor)
+	if actor["x"] < 0 then
+ 	actor["x"]=0
  	sfx(0)
- elseif playerx > 127 then
- 	playerx=120
+ 	return true
+ elseif actor["x"] > 127 then
+ 	actor["x"]=120
  	sfx(0)
- elseif playery < 0 then
- 	playery=0
+ 	return true
+ elseif actor["y"] < 0 then
+ 	actor["y"]=0
  	sfx(0)
- elseif playery > 119 then
- 	playery=112
+ 	return true
+ elseif actor["y"] > 119 then
+ 	actor["y"]=112
  	sfx(0)
- end 
+ 	return true
+ end
+ 
+ return false
 end
 
 function _update()
@@ -51,10 +85,10 @@ end
 
 function drawactors()
 	--player
-	spr(001,playerx,playery)
+	spr(001,player["x"],player["y"])
 	
 	--test rock
-	spr(005,testrockx,testrocky)
+	spr(005,testrock["x"],testrock["y"])
 end
 
 function _draw()
