@@ -120,6 +120,7 @@ function drawhud()
 	rectfill(0,120,127,127,0)
 	rect(0,120,127,128,7)
 	print("level "..level,2,122,7)
+	print("remaining "..blockcount,76,122,7)
 end
 
 function drawactors()
