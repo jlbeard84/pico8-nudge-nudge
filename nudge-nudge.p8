@@ -29,6 +29,8 @@ function _init()
 
 	blocks={}
 	blockcount=0
+	
+	--todo: load map
 
 	for i=0,15,1 do
 		for j=0,16,1 do
@@ -50,16 +52,6 @@ function _init()
 			end
 		end
 	end
-
-
-	--player.x=gridsquare
-	--player.y=gridsquare
-	
-	
-	
-	--for i=1,blockcount,1 do
-	--	
-	--end
 
 end
 
