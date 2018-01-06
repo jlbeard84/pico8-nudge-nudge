@@ -4,18 +4,25 @@ __lua__
 --nudge-nudge
 -- by jbeard
 
---game
 level=1
 gridsquare=8
+levelfinished=false
 
---player
 player={}
 player.x=0
 player.y=0
 
---blocks
 blockcount=2
 blocks={}
+
+portal={}
+portal.x=gridsquare*5
+portal.y=gridsquare*8
+portalsprites={2,3,4}
+portalspritelength=3
+portalcounter=1
+portalspriteiterator=1
+portalspritespeed=5
 
 function _init()
 
@@ -45,37 +52,46 @@ function moveplayer()
  player.x+=mvmtx
  player.y+=mvmty
  
- for i=1,blockcount,1 do
+ for block in all(blocks) do
  
-		if checkboundingcollision(player,blocks[i])==true then
-		
+		if checkboundingcollision(player,block)==true then
+					
+				block.x+=mvmtx
+				block.y+=mvmty
 				
-				blocks[i].x+=mvmtx
-				blocks[i].y+=mvmty
+				if checkboundingcollision(block,portal) then
+					del(blocks,block)
+					blockcount-=1
+					
+					if blockcount==0 then
+						levelfinished=true
+					end
+					
+					return
+				end
 				
-				for j=1,blockcount,1 do
-					if j~=i and
-					 checkboundingcollision(blocks[i],blocks[j])==true then
+				for adjacantblock in all(blocks) do
+					if block~=adjacantblock and
+					 checkboundingcollision(block,adjacantblock)==true then
 						
-							blocks[i].x-=mvmtx
-							blocks[i].y-=mvmty
+							block.x-=mvmtx
+							block.y-=mvmty
 							player.x-=mvmtx
 							player.y-=mvmty
 							
 							return				
-						
 					end
 				end
 				
 			
-				if checkedgecollision(blocks[i])==true then
+				if checkedgecollision(block)==true then
 					player.x-=mvmtx
 					player.y-=mvmty
 				end
 			
 				return
 		end
- end	
+ end
 
  checkedgecollision(player)
 end
@@ -115,26 +131,45 @@ function checkedgecollision(actor)
  return false
 end
 
+function updateanimations()
+	portalspriteiterator+=1
+	
+	if portalspriteiterator>portalspritespeed then
+		portalspriteiterator=1
+		portalcounter+=1
+		
+		if portalcounter>portalspritelength then
+			portalcounter=1
+		end
+	end
+end
+
 function _update()
 	moveplayer()
+	updateanimations()
 end
 
 function drawhud()
 	rectfill(0,120,127,127,0)
 	rect(0,120,127,128,7)
+	
+	if levelfinished==true then
+		print("win",45,122,7)
+	end
+	
 	print("level "..level,2,122,7)
 	print("remaining "..blockcount,76,122,7)
 end
 
 function drawactors()
-	--player
-	spr(001,player.x,player.y)
+	
+	spr(portalsprites[portalcounter],portal.x,portal.y)
 	
 	for i=1,blockcount,1 do
 		spr(005,blocks[i].x,blocks[i].y)
 	end
-	--test rock
 	
+	spr(001,player.x,player.y)
 end
 
 function _draw()
@@ -144,14 +179,14 @@ function _draw()
 end
 
 __gfx__
-0000000000aaaa00cccccccccccccccccccccccc0004400000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000000aaaaaa0c777777cc777777cc777777c0044540000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700aacaacaac7666c7cc766667cc76c667c0445444000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000aa1aa1aac761167cc7c1167cc761167c4544454500000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000aaaaaaaac761167cc7611c7cc761167c4454444400000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700a8aaaa8ac7c6667cc766667cc766c67c0444544000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000000a8888a0c777777cc777777cc777777c0044440000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000000aaaa00cccccccccccccccccccccccc0005400000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000aaaa007cccccc7cccccc7cccc7cccc0004400000000000000000000000000000000000cccccccc0000000000000000000000000000000000000000
+000000000aaaaaa0cc7777cc77777c7cc77c777c0044540000000000000000000000000000000000c777777c0000000000000000000000000000000000000000
+00700700aacaacaac7c66c7ccc66c67cc76c667c0445444000000000000000000000000000000000c766667c0000000000000000000000000000000000000000
+00077000aa1aa1aac761167cc7c1167cc7611cc74544454500000000000000000000000000000000c761167c0000000000000000000000000000000000000000
+00077000aaaaaaaac761167cc7611c7c7cc1167c4454444400000000000000000000000000000000c761167c0000000000000000000000000000000000000000
+00700700a8aaaa8ac7c66c7cc76c66ccc766c67c0444544000000000000000000000000000000000c766667c0000000000000000000000000000000000000000
+000000000a8888a0cc7777ccc7c77777c777c77c0044440000000000000000000000000000000000c777777c0000000000000000000000000000000000000000
+0000000000aaaa007cccccc7c7cccccccccc7ccc0005400000000000000000000000000000000000cccccccc0000000000000000000000000000000000000000
 __label__
 33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
 33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
