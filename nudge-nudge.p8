@@ -26,7 +26,13 @@ portalspritespeed=5
 
 function _init()
 
+	player.x=0
+	player.y=0
+
 	startpos=16
+	blockcount=2
+	
+	blocks={}
 	
 	for i=1,blockcount,1 do
 		blocks[i]={ x=startpos*i,y=startpos*i }
@@ -145,6 +151,12 @@ function updateanimations()
 end
 
 function _update()
+
+	if btnp(5) then
+		_init()
+		return
+	end
+
 	moveplayer()
 	updateanimations()
 end
