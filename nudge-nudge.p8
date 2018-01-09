@@ -4,6 +4,8 @@ __lua__
 --nudge-nudge
 -- by jbeard
 
+--gamestates:1=load,2=transitionin,3=game,4=transitionout
+
 level=1
 gridsquare=8
 floorsprite=7
@@ -11,6 +13,10 @@ restartcount=0
 isrestart=false
 blockrows=15
 blockcols=16
+gamestate=1
+stateincrementor=0
+stateloadmax=90
+statetransitionmax=127
 
 player={}
 player.x=0
@@ -241,22 +247,55 @@ end
 
 function _update()
 
-	if blockcount==0 then
-		isrestart=false
-		level+=1
-		_init()
-		return
-	end
+	if gamestate==1 then
+		stateincrementor+=1
 
-	if btnp(5) then
-		isrestart=true
-		restartcount+=1
-		_init()
-		return
-	end
+		if stateincrementor > stateloadmax then
+			stateincrementor=0
+			gamestate=2
+		end
 
-	moveplayer()
-	updateanimations()
+	elseif gamestate==2 then
+		stateincrementor+=12
+
+		if stateincrementor > statetransitionmax then
+			stateincrementor=0
+			gamestate=3
+		end
+
+	elseif gamestate==3 then
+
+		if blockcount==0 then
+			isrestart=false
+			gamestate=4
+			return
+		end
+
+		if btnp(5) then
+			isrestart=true
+			restartcount+=1
+			gamestate=4
+			return
+		end
+
+		moveplayer()
+		updateanimations()
+
+	elseif gamestate==4 then
+
+		stateincrementor+=12
+
+		if stateincrementor > statetransitionmax then
+			stateincrementor=0
+			gamestate=1
+
+			if isrestart==false then
+				level+=1
+			end
+
+			_init()
+		end
+	end
 end
 
 function drawhud()
@@ -279,10 +318,24 @@ function drawactors()
 end
 
 function _draw()
-	rectfill(0,0,127,119,3)
-	map(colstart, rowstart, 0, 0, 16, 15)
-	drawactors()
-	drawhud()
+	if gamestate==1 then
+		rectfill(0,0,127,127,0)
+		print("level "..level,40,58,7)
+		print("restarts "..restartcount,40,66,7)
+	end
+
+	if gamestate==3 or gamestate==2 or gamestate==4 then
+		rectfill(0,0,127,119,3)
+		map(colstart, rowstart, 0, 0, 16, 15)
+		drawactors()
+		drawhud()
+	end
+
+	if gamestate==4 then
+		rectfill(0,0,stateincrementor,127,0)
+	elseif gamestate==2 then
+		rectfill(0,0,statetransitionmax-stateincrementor,127,0)
+	end
 end
 
 __gfx__
