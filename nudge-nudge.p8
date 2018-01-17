@@ -6,7 +6,7 @@ __lua__
 
 --gamestates:1=load,2=transitionin,3=game,4=transitionout,5=title,6=titleload
 
-level=8
+level=0
 gridsquare=8
 floorsprite=7
 restartcount=0
