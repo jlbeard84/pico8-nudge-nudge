@@ -18,6 +18,8 @@ stateincrementor=0
 stateloadmax=90
 statetransitionmax=127
 mapsperrow=8
+fireballcount=30
+fireballspeed=3
 
 player={}
 player.x=0
@@ -51,6 +53,7 @@ initialblocks={}
 
 initialshooters={}
 shooters={}
+fireballs={}
 
 portal={}
 portal.x=0
@@ -80,6 +83,7 @@ function _init()
 	blockcount=0
 
 	shooters={}
+	fireballs={}
 	
 	if isrestart==false then
 		initialblocks={}
@@ -115,8 +119,8 @@ function _init()
 				player.inity=calcyoffset(j)
 			elseif fget(sprite, 4)==true then
 				mset(i,j,7)
-				add(shooters,{x=calcxoffset(i),y=calcyoffset(j) })
-				add(initialshooters,{x=calcxoffset(i),y=calcyoffset(j) })
+				add(shooters,{x=calcxoffset(i),y=calcyoffset(j),fc=0 })
+				add(initialshooters,{x=calcxoffset(i),y=calcyoffset(j),fc=0 })
  			end
  		end
  	end
@@ -131,7 +135,7 @@ function _init()
 	 end
 	 
 	 for initshooter in all(initialshooters) do
-		add(shooters,{x=initshooter.x,y=initshooter.y})
+		add(shooters,{x=initshooter.x,y=initshooter.y,fc=initshooter.fc})
 	 end
  end
 
@@ -147,6 +151,12 @@ end
 
 function getsprrelypos(y)
 	return (y/gridsquare)+(flr((level-1)/8)*blockrows)
+end
+
+function killplayer()
+	isrestart=true
+	restartcount+=1
+	gamestate=4
 end
 
 function moveplayer()
@@ -167,32 +177,103 @@ function moveplayer()
   	mvmty+=gridsquare
   	playerdir=3
  end
- 
- if mvmtx==0 and mvmty==0 then
- 	return
- end
 
- player.x+=mvmtx
- player.y+=mvmty
- 
- if fget(mget(getsprrelxpos(player.x),getsprrelypos(player.y)),0)==true then
-	player.x-=mvmtx
-	player.y-=mvmty
-	return
+ for fireball in all(fireballs) do
+	fireball.i+=1
+
+	if fireball.i > fireballspeed then
+		fireball.i = 0
+		
+		fmx = 0
+		fmy = 0
+
+		if fireball.dir==0 then
+			fmx+=gridsquare
+			fmy=0
+		elseif fireball.dir==1 then
+			fmx-=gridsquare
+			fmy=0
+		elseif fireball.dir==2 then
+			fmx=0
+			fmy-=gridsquare
+		else
+			fmx=0
+			fmy+=gridsquare
+		end
+
+		fireball.x+=fmx
+		fireball.y+=fmy
+
+		if checkboundingcollision(player, fireball)==true then
+			killplayer()
+			return
+		end
+
+		fbpossolid=fget(mget(getsprrelxpos(fireball.x),getsprrelypos(fireball.y)),0)
+
+		if fbpossolid==true then
+			del(fireballs, fireball)
+		end
+
+		for block in all(blocks) do
+			if checkboundingcollision(fireball, block)==true then
+				del(fireballs, fireball)
+			end
+		end
+	 end
  end
 
  for shooter in all(shooters) do
 
-	if shooter.x == player.x or shooter.y == player.y then
-
-		--TODO: check blockers in between
-
-
-		isrestart=true
-		restartcount+=1
-		gamestate=4
-		return;
+	if shooter.fc >= fireballcount then
+		shooter.fc=0
+	elseif shooter.fc > 0 then
+		shooter.fc+=1
 	end
+
+	if shooter.fc==0 and (shooter.x == player.x or shooter.y == player.y) then
+		firedir=0
+		firex=0
+		firey=0
+		shooter.fc+=1
+
+		if shooter.x == player.x then
+			if shooter.y < player.y then
+				firedir=3
+				firex=shooter.x
+				firey=shooter.y+gridsquare
+			else
+				firedir=2
+				firex=shooter.x
+				firey=shooter.y-gridsquare
+			end
+		else
+			if shooter.x < player.x then
+				firedir=0
+				firex=shooter.x+gridsquare
+				firey=shooter.y
+			else
+				firedir=1
+				firex=shooter.x-gridsquare
+				firey=shooter.y
+			end
+		end
+
+		add(fireballs, {x=firex,y=firey,dir=firedir,i=0})
+	end
+ end
+
+ if mvmtx==0 and mvmty==0 then
+	return
+ end
+
+ player.x+=mvmtx
+ player.y+=mvmty
+
+ if fget(mget(getsprrelxpos(player.x),getsprrelypos(player.y)),0)==true then
+ 	player.x-=mvmtx
+ 	player.y-=mvmty
+ 	return
  end
  
  for block in all(blocks) do
@@ -346,9 +427,7 @@ function _update()
 		end
 
 		if btnp(5) then
-			isrestart=true
-			restartcount+=1
-			gamestate=4
+			killplayer()
 			return
 		end
 
@@ -399,6 +478,22 @@ function drawactors()
 
 	for shooter in all(shooters) do
 		spr(038,shooter.x,shooter.y)
+	end
+
+	for fireball in all(fireballs) do
+		fs = 39
+
+		if fireball.dir==0 then
+			fs=41
+		elseif fireball.dir==1 then
+			fs=39
+		elseif fireball.dir==2 then
+			fs=42
+		else
+			fs=40
+		end
+
+		spr(fs,fireball.x,fireball.y)
 	end
 
 	ps=1
@@ -783,10 +878,21 @@ __map__
 250f0f0f0f0f0f0f0f0f0f0f0f0f0f25250f0f0f0f0f0f0f0f0f0f0f0f0f0f25000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 2525252525252525252525252525252525252525252525252525252525252525000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-010100000b0510805107051070510705108051090510705101051216001f6001e6001c6001b6001b6001a6001a600196001960019600196001960019600196001960019600196001960019600196001960019600
+010100000d0510805107051070510705108051090510705101051216001f6001e6001c6001b6001b6001a6001a600196001960019600196001960019600196001960019600196001960019600196001960019600
 011400000f5220f522125220f5220f52212522107420e7420c7420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 010f00001365413655015000150001500015000250000000025000000002500015000150000000015000000002500000000250000000015000000001500000000250000000025000000001500000000150000000
 011000001a0001b0001a0001b0001a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011c0000040750403509075090350407504035090750903505075050350b0750b03505075050350b0750b035040750403509075090350407504035090750903507075070350b0750b03507075070350b0750b035
+011c00000e3220e322103220e3210e3220e321103221032215322133221332215322133221332215322133220e3220e322103220e3210e3220e32110322103221532215322153221332213322153221332211322
+011c00000f3220f322123220f3220f3220f3221232212322163220d3220d322163220d3220d322163220d3220f3220f322123220f3220f3220f32212322123220d322163220d3220d322163220d3220d32216322
 __music__
-00 01024344
+01 0a4b4344
+01 0a0b4344
+02 0a0c4344
 
