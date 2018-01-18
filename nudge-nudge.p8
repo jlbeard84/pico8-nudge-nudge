@@ -4,9 +4,9 @@ __lua__
 --nudge-nudge
 -- (c) @jlateralus
 
---gamestates:1=load,2=transitionin,3=game,4=transitionout,5=title,6=titleload
+--gamestates:1=load,2=transitionin,3=game,4=transitionout,5=title,6=titleload,7=intro
 
-level=8
+level=0
 gridsquare=8
 floorsprite=7
 restartcount=0
@@ -479,11 +479,19 @@ function _update()
 	elseif gamestate==5 then
 
 		if btnp(5) then
+			gamestate=7
+			return
+		end
+
+	elseif gamestate==7 then
+
+		if btnp(5) then
 			isrestart=false
 			stateincrementor=0
 			gamestate=6
 			return
 		end
+
 	end
 end
 
@@ -547,7 +555,7 @@ function _draw()
 		print("restarts "..restartcount,40,66,7)
 	end
 
-	if gamestate==5 or gamestate==6 then
+	if gamestate==5 or gamestate == 6 or gamestate==7 then
 		rectfill(0,0,127,20,2)
 		rectfill(0,21,127,40,8)
 		rectfill(0,41,127,60,14)
@@ -629,6 +637,23 @@ function _draw()
 		if gamestate==5 then
 			print("press (x) to start", 30, 105, 7)
 		end
+	end
+
+	if gamestate==6 or gamestate==7 then
+
+		rectfill(6, 44, 121, 118, 0)
+		rect(5, 43, 122, 119, 7)
+
+		print("help nudge the monkey",20,46,7)
+		print("collect his bananas!",20,52,7)
+		print("push each one into the",20,58,7)
+		print("mysterious portal to", 20,64,7)
+		print("progress!", 20,70,7)
+
+		print("directional keys: move",20,85,7)
+		print("(x): restart level",30,91,7)
+		print("press (x) to start", 30, 108, 7)
+		
 	end
 
 	if gamestate==3 or gamestate==2 or gamestate==4 then
