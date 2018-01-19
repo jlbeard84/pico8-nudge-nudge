@@ -6,7 +6,7 @@ __lua__
 
 --gamestates:1=load,2=transitionin,3=game,4=transitionout,5=title,6=titleload,7=intro,8=outro
 
-level=11
+level=0
 maxlevels=12
 gridsquare=8
 floorsprite=7
