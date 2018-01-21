@@ -75,7 +75,7 @@ rowoffset=0
 coloffset=0
 
 function calcxoffset(iterator)
-	return (iterator-(((level%8)-1)*blockcols))*gridsquare
+	return (iterator-((((level-1)%8))*blockcols))*gridsquare
 end
 
 function calcyoffset(iterator)
@@ -156,7 +156,7 @@ function ceil(num)
 end
 
 function getsprrelxpos(x)
-	return (x/gridsquare)+(((level%8)-1)*blockcols)
+	return (x/gridsquare)+((((level-1)%8))*blockcols)
 end
 
 function getsprrelypos(y)
